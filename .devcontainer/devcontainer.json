@@ -31,9 +31,6 @@
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube,type=bind,consistency=cached"
   ],
   "remoteUser": "vscode",
-  "runArgs": [
-    "--userns=keep-id"
-  ],
   "hostRequirements": {
     "cpus": 2,
     "memory": "2gb"
