@@ -1,0 +1,15 @@
+apiVersion: v2
+kubeVersion: ">=1.23.0-0"
+name: flaresolverr
+description: flaresolverr helm chart for Kubernetes
+type: application
+version: 2.1.2
+# image: flaresolverr/flaresolverr
+appVersion: "v3.4.2"
+maintainers:
+  - name: Joe Harrison
+    email: sudo-kraken@prxy.8shield.net
+sources:
+  - https://github.com/sudo-kraken/helm-charts/tree/main/charts/flaresolverr
+home: https://github.com/FlareSolverr/FlareSolverr
+icon: https://artifacthub.io/image/08745b60-3c38-4642-af66-7d51aec43b9f@4x

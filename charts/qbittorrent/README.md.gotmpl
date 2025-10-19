@@ -1,0 +1,34 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.homepageLine" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+## Install
+
+> [!IMPORTANT]
+> The Helm chart does not handle opening Gluetun firewall ports automatically. You are responsible for opening the ports you need.
+> For details, see [Firewall Environment Variables](https://github.com/qdm12/gluetun-wiki/blob/main/setup/options/firewall.md#environment-variables).
+
+```console
+helm install {{ template "chart.name" . }} oci://ghcr.io/sudo-kraken/helm-charts/{{ template "chart.name" . }}
+```
+
+Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
+
+```console
+cosign verify ghcr.io/sudo-kraken/helm-charts/{{ template "chart.name" . }}:{{ template "chart.version" . }} --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
+tions.githubusercontent.com
+```
+
+{{ template "chart.valuesSection" . }}

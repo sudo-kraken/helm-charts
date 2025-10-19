@@ -1,0 +1,38 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  description: "Automated dependency updates for helm-charts",
+  extends: [
+    "config:recommended",
+    "docker:enableMajor",
+    "replacements:k8s-registry-move",
+    ":automergePr",
+    ":automergePatch",
+    ":automergeDigest",
+    ":disableRateLimiting",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":timezone(Europe/London)",
+    "github>sudo-kraken/helm-charts//.github/renovate/actions.json5",
+    "github>sudo-kraken/helm-charts//.github/renovate/devcontainers.json5",
+    "github>sudo-kraken/helm-charts//.github/renovate/helm.json5",
+    "github>sudo-kraken/helm-charts//.github/renovate/labels.json5",
+    "github>sudo-kraken/helm-charts//.github/renovate/semanticCommits.json5",
+  ],
+  dependencyDashboardTitle: "Renovate Dashboard 🤖",
+  suppressNotifications: ["prEditedNotification", "prIgnoreNotification"],
+  rebaseWhen: "conflicted",
+  pruneStaleBranches: true,
+  pruneBranchAfterAutomerge: true,
+  prConcurrentLimit: 5,
+  labels: ["dependencies"],
+  schedule: ["after 9pm on sunday"],
+  minimumReleaseAge: "7 days",
+
+  lockFileMaintenance: {
+    enabled: true,
+    automerge: true,
+    branchTopic: "lock-file-maintenance",
+  },
+
+  labels: ["dependencies"],
+}

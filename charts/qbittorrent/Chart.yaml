@@ -1,0 +1,15 @@
+apiVersion: v2
+kubeVersion: ">=1.23.0-0"
+name: qbittorrent
+description: qbittorrent helm chart for Kubernetes
+type: application
+version: 5.1.3
+# image: ghcr.io/home-operations/qbittorrent
+appVersion: "5.1.2"
+maintainers:
+  - name: Joe Harrison
+    email: sudo-kraken@prxy.8shield.net
+sources:
+  - https://github.com/sudo-kraken/helm-charts/tree/main/charts/qbittorrent
+home: https://github.com/qbittorrent/qBittorrent
+icon: https://artifacthub.io/image/08745b60-3c38-4642-af66-7d51aec43b9f@4x

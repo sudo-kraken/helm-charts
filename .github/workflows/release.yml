@@ -1,0 +1,300 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changelog:
+    name: Generate changelog
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      release_body: ${{ steps.git-cliff.outputs.content }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Generate changelog
+        id: git-cliff
+        uses: orhun/git-cliff-action@d77b37db2e3f7398432d34b72a12aa3e2ba87e51 # v4.6.0
+        with:
+          config: .github/cliff.toml
+          args: -vv --current
+        env:
+          OUTPUT: CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+
+  create-draft-release:
+    name: Create draft release
+    runs-on: ubuntu-24.04
+    needs: changelog
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Draft Release
+        run: gh release create ${GITHUB_REF_NAME} -t "Release ${GITHUB_REF_NAME}" -n "${RELEASE_BODY}" --draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_BODY: ${{ needs.changelog.outputs.release_body }}
+
+  package-helm-charts:
+    name: Package Helm charts
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
+    outputs:
+      has_artifacts: ${{ steps.check-artifacts.outputs.has_artifacts }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Install helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+
+      - name: Install Oras
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package Helm charts that do not already exist in GHCR
+        run: |
+          set -euo pipefail
+          mkdir -p ./.cr-release-packages
+          for chart_path in ./charts/*; do
+            if [ -d "$chart_path" ] && [ -f "$chart_path/Chart.yaml" ]; then
+              chart=$(basename "$chart_path")
+              current_version=$(grep '^version:' "$chart_path/Chart.yaml" | awk '{print $2}')
+              set +e
+              oras discover ghcr.io/${GITHUB_REPOSITORY@L}/${chart}:${current_version} >/dev/null 2>&1
+              oras_exit_code=$?
+              set -e
+              if [ $oras_exit_code -ne 0 ]; then
+                helm dependency build "$chart_path"
+                helm package "$chart_path" --destination ./.cr-release-packages
+              else
+                echo "No version change for $chart. Skipping."
+              fi
+            else
+              echo "Skipping $chart_path: not a valid Helm chart"
+            fi
+          done
+
+      - name: Check if artefacts exist
+        id: check-artifacts
+        run: |
+          if ls .cr-release-packages/* >/dev/null 2>&1; then
+            echo "has_artifacts=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_artifacts=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload packaged charts as artefacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.check-artifacts.outputs.has_artifacts == 'true'
+        with:
+          name: packaged-charts
+          path: .cr-release-packages/
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 1
+
+  sign-archives:
+    name: Sign chart archives for release attachments
+    needs: [package-helm-charts]
+    if: needs.package-helm-charts.outputs.has_artifacts == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      COSIGN_YES: 'true'
+    steps:
+      - name: Download packaged charts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: packaged-charts
+          path: .cr-release-packages
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
+
+      - name: Sign each .tgz as a blob and save bundles
+        run: |
+          set -euo pipefail
+          for tgz in .cr-release-packages/*.tgz; do
+            [ -e "$tgz" ] || { echo "No archives to sign"; exit 0; }
+            cosign sign-blob --bundle "${tgz}.bundle" "${tgz}"
+          done
+
+      - name: Upload signature bundles
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: signature-bundles
+          path: .cr-release-packages/*.bundle
+          if-no-files-found: ignore
+          retention-days: 1
+
+  publish-to-ghcr:
+    name: Push charts to GHCR and sign OCI references
+    runs-on: ubuntu-latest
+    needs: [package-helm-charts]
+    if: needs.package-helm-charts.outputs.has_artifacts == 'true'
+    permissions:
+      packages: write
+      id-token: write
+    env:
+      COSIGN_YES: 'true'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+
+      - name: Install Oras
+        uses: oras-project/setup-oras@22ce207df3b08e061f537244349aac6ae1d214f6 # v1.2.4
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
+
+      - name: Download packaged charts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: packaged-charts
+          path: .cr-release-packages/
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push charts to GHCR and sign OCI references
+        run: |
+          set -euo pipefail
+          for chart_path in $(find .cr-release-packages -name '*.tgz' -print); do
+            chart_release_file=$(basename "$chart_path")
+            chart=${chart_release_file%-*}
+            # Push the chart as OCI
+            helm push "${chart_path}" oci://ghcr.io/${GITHUB_REPOSITORY@L} |& tee helm-push-output.log
+            chart_digest=$(awk -F "[, ]+" '/Digest/{print $NF}' < helm-push-output.log)
+            # Sign the pushed OCI reference
+            cosign sign "ghcr.io/${GITHUB_REPOSITORY@L}/${chart}@${chart_digest}"
+            # Push artifacthub-repo.yml as an auxiliary object and sign it
+            oras push \
+              ghcr.io/${GITHUB_REPOSITORY@L}/${chart}:artifacthub.io \
+              --config /dev/null:application/vnd.cncf.artifacthub.config.v1+yaml \
+              charts/$chart/artifacthub-repo.yml:application/vnd.cncf.artifacthub.repository-metadata.layer.v1.yaml \
+              |& tee oras-push-output.log
+            artifacthub_digest=$(grep "Digest:" oras-push-output.log | awk '{print $2}')
+            cosign sign "ghcr.io/${GITHUB_REPOSITORY@L}/${chart}:artifacthub.io@${artifacthub_digest}"
+          done
+
+  upload-release-assets:
+    name: Upload chart artefacts to GitHub Release
+    needs: [create-draft-release, package-helm-charts, sign-archives]
+    if: needs.package-helm-charts.outputs.has_artifacts == 'true'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download packaged charts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: packaged-charts
+          path: release
+
+      - name: Download signature bundles
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          name: signature-bundles
+          path: release
+        continue-on-error: true
+
+      - name: Upload to release
+        run: gh release upload "${GITHUB_REF_NAME}" release/* --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-release:
+    name: Publish release
+    needs: [create-draft-release, upload-release-assets]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Publish
+        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --repo "${{ github.repository }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  discord:
+    name: Send Discord Notification
+    needs: publish-release
+    if: always()
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          case "${{ needs.publish-release.result }}" in
+            success)   echo "status=Success"   >> $GITHUB_OUTPUT; echo "colour=3066993"  >> $GITHUB_OUTPUT ;;
+            failure)   echo "status=Failure"   >> $GITHUB_OUTPUT; echo "colour=15158332" >> $GITHUB_OUTPUT ;;
+            cancelled) echo "status=Cancelled" >> $GITHUB_OUTPUT; echo "colour=10181046" >> $GITHUB_OUTPUT ;;
+            *)         echo "status=Skipped"   >> $GITHUB_OUTPUT; echo "colour=9807270"  >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: Send notification
+        run: |
+          WEBHOOK="${{ secrets.DISCORD_WEBHOOK }}"
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "embeds": [{
+              "title": "${{ steps.status.outputs.status }}: ${{ github.workflow }}",
+              "color": ${{ steps.status.outputs.colour }},
+              "fields": [
+                { "name": "Repository",   "value": "[${{ github.repository }}](${{ github.server_url }}/${{ github.repository }})", "inline": true },
+                { "name": "Ref",          "value": "${{ github.ref }}", "inline": true },
+                { "name": "Event",        "value": "${{ github.event_name }}", "inline": true },
+                { "name": "Triggered by", "value": "${{ github.actor }}", "inline": true },
+                { "name": "Workflow",     "value": "[${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})", "inline": true }
+              ]
+            }]
+          }
+          EOF
+          )
+
+          curl -sS -H "Content-Type: application/json" -X POST -d "$PAYLOAD" "$WEBHOOK" || true
