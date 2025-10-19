@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer-smoke.yml'
   workflow_dispatch:
 
 concurrency:
@@ -40,28 +43,30 @@ jobs:
               echo "PATH check"
               echo "$PATH" | grep -q "/usr/local/bin"
 
-              echo "uv and Python"
-              command -v uv >/dev/null
-              uv --version
-              python --version
-              uv run -q python -V
+              echo "Helm and Kubernetes tools"
+              command -v helm >/dev/null
+              helm version --short
+              command -v kubectl >/dev/null
+              kubectl version --client --short
+              command -v minikube >/dev/null
+              minikube version
 
-              echo "Docker client present"
-              command -v docker >/dev/null
+              echo "Chart testing tools"
+              command -v ct >/dev/null
+              ct version
 
-              echo "Docker socket check"
-              if [ -S /var/run/docker.sock ]; then
-                if sudo -n true 2>/dev/null; then
-                  sudo -n docker version >/dev/null 2>&1 || docker version >/dev/null
-                  sudo -n docker ps >/dev/null 2>&1 || docker ps >/dev/null
-                else
-                  docker version >/dev/null
-                  docker ps >/dev/null
-                fi
-                echo "Docker socket available and working"
-              else
-                echo "No /var/run/docker.sock available in container, skipping daemon tests"
-              fi
+              echo "Go and additional tools"
+              command -v go >/dev/null
+              go version
+              command -v cosign >/dev/null
+              cosign version
+
+              echo "GitHub CLI"
+              command -v gh >/dev/null
+              gh --version
+
+              echo "KUBECONFIG check"
+              echo "$KUBECONFIG" | grep -q "/root/.kube" || echo "KUBECONFIG not set as expected, but continuing"
 
               echo "OK: devcontainer is healthy"
             '
