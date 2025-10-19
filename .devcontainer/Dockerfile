@@ -14,8 +14,7 @@ RUN set -eux; \
     arch="$(uname -m)"; case "$arch" in x86_64) a=amd64 ;; aarch64) a=arm64 ;; *) a=amd64 ;; esac; \
     curl -fsSL -o /usr/local/bin/cosign "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-${a}"; \
     chmod +x /usr/local/bin/cosign \
-    # Install helm-docs
-    go install github.com/norwoodj/helm-docs/cmd/helm-docs@latest \
+
     # Set KUBECONFIG to include all kubeconfig files in ~/.kube
     echo 'export KUBECONFIG=$(for YAML in $(find ${HOME}/.kube -maxdepth 1 -type f -name '\''*'\'') ; do echo -n ":${YAML}"; done)' >> /etc/bash.bashrc
 
