@@ -23,6 +23,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
 
+      - name: Prepare kubeconfig directory
+        run: mkdir -p ~/.kube
+
       - name: Build devcontainer
         uses: devcontainers/ci@8bf61b26e9c3a98f69cb6ce2f88d24ff59b785c6 # v0.3
         with:
@@ -66,7 +69,7 @@ jobs:
               gh --version
 
               echo "KUBECONFIG check"
-              echo "$KUBECONFIG" | grep -q "/root/.kube" || echo "KUBECONFIG not set as expected, but continuing"
+              echo "$KUBECONFIG" | grep -q "/home/vscode/.kube" || echo "KUBECONFIG not set as expected, but continuing"
 
               echo "OK: devcontainer is healthy"
             '
