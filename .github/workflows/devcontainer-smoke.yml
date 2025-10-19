@@ -50,7 +50,7 @@ jobs:
               command -v helm >/dev/null
               helm version --short
               command -v kubectl >/dev/null
-              kubectl version --client --short
+              kubectl version --client
               command -v minikube >/dev/null
               minikube version
 
