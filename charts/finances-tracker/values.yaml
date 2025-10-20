@@ -1,0 +1,131 @@
+replicaCount: 1
+
+image:
+  registry: ghcr.io
+  repository: sudo-kraken/finances-tracker
+  pullPolicy: IfNotPresent
+  tag: ""              # use chart appVersion by default
+  sha: ""              # or pin a digest without sha256: prefix
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+extraEnv: []
+extraEnvFrom: []
+
+serviceAccount:
+  create: false
+  annotations: {}
+  automount: false        # a little harder by default
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 10001
+  fsGroupChangePolicy: OnRootMismatch
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  privileged: false
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: LoadBalancer
+  loadBalancerIP: 10.0.140.123
+  externalTrafficPolicy: Cluster
+  ipFamilyPolicy: ""
+  ipFamilies: []
+  annotations: {}
+  labels: {}
+  port: 80
+  targetPort: 7070
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  tls:
+    enabled: true
+    secretName: krakenlabs-tls
+  hosts:
+    - host: ft.krakenlabs.co.uk
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+app:
+  containerName: finances-tracker
+  containerPort: 7070
+  env: []
+  dbMountPath: /app/app/db
+
+# Use an existing Secret in prod
+secret:
+  create: false
+  name: finances-tracker-secrets
+  data: {}
+
+persistence:
+  enabled: true
+  existingClaim: finances-tracker-db-lh-pvc
+  storageClassName: ""      # not needed when using existingClaim
+  accessModes: [ReadWriteOnce]
+  size: 1Gi
+  annotations: {}
+  labels: {}
+
+# Probes use /health since the app exposes only that
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: false
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 30
+  successThreshold: 1
+
+# Leave disabled
+serviceMonitor:
+  enabled: false
