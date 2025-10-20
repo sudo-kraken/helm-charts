@@ -41,13 +41,6 @@ These are personal Helm charts published to Artifact Hub. Documentation and valu
 
 Installation and source can differ by chart. Refer to the chart’s README for authoritative instructions. Common patterns are shown below.
 
-### From a Helm repository
-
-```bash
-# Add repository if applicable
-helm repo add sudo-kraken https://sudo-kraken.github.io/helm-charts
-helm repo update
-
 # Install a chart
 helm install <release-name> sudo-kraken/<chart-name> --version <x.y.z> -f values.yaml
 ```
