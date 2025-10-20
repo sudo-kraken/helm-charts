@@ -145,14 +145,14 @@ jobs:
 
   discord:
     name: Send Discord Notification
-    needs: package-helm-charts
+    needs: publish-to-ghcr
     if: always()
     runs-on: ubuntu-24.04
     steps:
       - name: Determine status
         id: status
         run: |
-          case "${{ needs.publish-release.result }}" in
+          case "${{ needs.publish-to-ghcr.result }}" in
             success)   echo "status=Success"   >> $GITHUB_OUTPUT; echo "colour=3066993"  >> $GITHUB_OUTPUT ;;
             failure)   echo "status=Failure"   >> $GITHUB_OUTPUT; echo "colour=15158332" >> $GITHUB_OUTPUT ;;
             cancelled) echo "status=Cancelled" >> $GITHUB_OUTPUT; echo "colour=10181046" >> $GITHUB_OUTPUT ;;
