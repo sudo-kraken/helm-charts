@@ -40,7 +40,7 @@ cosign verify ghcr.io/sudo-kraken/helm-charts/finances-tracker:0.1.0 --certifica
 | app.containerName | string | `"finances-tracker"` | Container name |
 | app.containerPort | int | `7070` | Container listen port |
 | app.dbMountPath | string | `"/app/app/db"` | Mount path for the SQLite database directory |
-| app.env | list | `[]` | Extra environment variables for the container |
+| app.env | list | `[{"name":"XDG_CACHE_HOME","value":"/tmp/.cache"},{"name":"HOME","value":"/tmp"}]` | Extra environment variables for the container |
 | extraEnv | list | `[]` | Environment variables to add to the finances-tracker pods |
 | extraEnvFrom | list | `[]` | Environment variables from secrets or configmaps to add to the finances-tracker pods |
 | fullnameOverride | string | `""` | Fully qualified app name override |

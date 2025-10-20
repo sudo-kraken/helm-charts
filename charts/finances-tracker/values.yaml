@@ -74,7 +74,11 @@ affinity: {}
 app:
   containerName: finances-tracker
   containerPort: 7070
-  env: []
+  env:
+    - name: XDG_CACHE_HOME
+      value: /tmp/.cache
+    - name: HOME
+      value: /tmp
   dbMountPath: /app/app/db
 
 # Use an existing Secret in prod
