@@ -17,7 +17,7 @@ extraEnvFrom: []
 serviceAccount:
   create: false
   annotations: {}
-  automount: false        # a little harder by default
+  automount: false
   name: ""
 
 podAnnotations: {}
@@ -40,8 +40,8 @@ securityContext:
     type: RuntimeDefault
 
 service:
-  type: LoadBalancer
-  loadBalancerIP: 10.0.140.123
+  type: ClusterIP
+  loadBalancerIP: ""
   externalTrafficPolicy: Cluster
   ipFamilyPolicy: ""
   ipFamilies: []
@@ -49,19 +49,18 @@ service:
   labels: {}
   port: 80
   targetPort: 7070
-
 ingress:
-  enabled: true
+  enabled: false
   className: nginx
   annotations:
     nginx.ingress.kubernetes.io/service-upstream: "true"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   tls:
-    enabled: true
-    secretName: krakenlabs-tls
+    enabled: false
+    secretName: ""
   hosts:
-    - host: ft.krakenlabs.co.uk
+    - host: ""
       paths:
         - path: /
           pathType: Prefix
@@ -81,16 +80,16 @@ app:
       value: /tmp
   dbMountPath: /app/app/db
 
-# Use an existing Secret in prod
 secret:
-  create: false
-  name: finances-tracker-secrets
-  data: {}
+  create: true
+  name: ""
+  data:
+    SECRET_KEY: dev-insecure-change-me
 
 persistence:
   enabled: true
-  existingClaim: finances-tracker-db-lh-pvc
-  storageClassName: ""      # not needed when using existingClaim
+  existingClaim: ""
+  storageClassName: ""
   accessModes: [ReadWriteOnce]
   size: 1Gi
   annotations: {}
