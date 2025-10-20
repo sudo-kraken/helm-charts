@@ -4,59 +4,16 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  changelog:
-    name: Generate changelog
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-    outputs:
-      release_body: ${{ steps.git-cliff.outputs.content }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Generate changelog
-        id: git-cliff
-        uses: orhun/git-cliff-action@d77b37db2e3f7398432d34b72a12aa3e2ba87e51 # v4.6.0
-        with:
-          config: .github/cliff.toml
-          args: -vv --current
-        env:
-          OUTPUT: CHANGELOG.md
-          GITHUB_REPO: ${{ github.repository }}
-
-  create-draft-release:
-    name: Create draft release
-    runs-on: ubuntu-24.04
-    needs: changelog
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
-        with:
-          persist-credentials: false
-
-      - name: Draft Release
-        run: gh release create ${GITHUB_REF_NAME} -t "Release ${GITHUB_REF_NAME}" -n "${RELEASE_BODY}" --draft
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_BODY: ${{ needs.changelog.outputs.release_body }}
-
   package-helm-charts:
     name: Package Helm charts
     runs-on: ubuntu-24.04
@@ -116,7 +73,7 @@ jobs:
             echo "has_artifacts=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Upload packaged charts as artefacts
+      - name: Upload packaged charts as artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: steps.check-artifacts.outputs.has_artifacts == 'true'
         with:
@@ -124,42 +81,6 @@ jobs:
           path: .cr-release-packages/
           if-no-files-found: error
           include-hidden-files: true
-          retention-days: 1
-
-  sign-archives:
-    name: Sign chart archives for release attachments
-    needs: [package-helm-charts]
-    if: needs.package-helm-charts.outputs.has_artifacts == 'true'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      id-token: write
-    env:
-      COSIGN_YES: 'true'
-    steps:
-      - name: Download packaged charts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: packaged-charts
-          path: .cr-release-packages
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
-
-      - name: Sign each .tgz as a blob and save bundles
-        run: |
-          set -euo pipefail
-          for tgz in .cr-release-packages/*.tgz; do
-            [ -e "$tgz" ] || { echo "No archives to sign"; exit 0; }
-            cosign sign-blob --bundle "${tgz##*/}.bundle" "${tgz}"
-          done
-
-      - name: Upload signature bundles
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: signature-bundles
-          path: '*.bundle'
-          if-no-files-found: ignore
           retention-days: 1
 
   publish-to-ghcr:
@@ -222,47 +143,9 @@ jobs:
             cosign sign "ghcr.io/${{ github.repository }}/${chart}:artifacthub.io@${artifacthub_digest}"
           done
 
-  upload-release-assets:
-    name: Upload chart artefacts to GitHub Release
-    needs: [create-draft-release, package-helm-charts, sign-archives]
-    if: needs.package-helm-charts.outputs.has_artifacts == 'true'
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - name: Download packaged charts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: packaged-charts
-          path: release
-
-      - name: Download signature bundles
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
-        with:
-          name: signature-bundles
-          path: release
-        continue-on-error: true
-
-      - name: Upload to release
-        run: gh release upload "${GITHUB_REF_NAME}" release/* --repo "${{ github.repository }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  publish-release:
-    name: Publish release
-    needs: [create-draft-release, upload-release-assets]
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - name: Publish
-        run: gh release edit "${GITHUB_REF_NAME}" --draft=false --repo "${{ github.repository }}"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   discord:
     name: Send Discord Notification
-    needs: publish-release
+    needs: package-helm-charts
     if: always()
     runs-on: ubuntu-24.04
     steps:
