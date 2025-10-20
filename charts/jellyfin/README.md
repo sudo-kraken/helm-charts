@@ -29,7 +29,7 @@ helm install jellyfin oci://ghcr.io/sudo-kraken/helm-charts/jellyfin
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/jellyfin:2.0.6 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/release.yml@refs/tags/v1.0.0 --certificate-oidc-issuer=https://token.ac
+cosign verify ghcr.io/sudo-kraken/helm-charts/jellyfin:2.0.6 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/release.yml@refs/head/main --certificate-oidc-issuer=https://token.ac
 tions.githubusercontent.com
 ```
 
