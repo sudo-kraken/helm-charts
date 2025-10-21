@@ -1,6 +1,6 @@
 # 3d-printing-cost-calculators
 
-![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.1.0](https://img.shields.io/badge/AppVersion-v1.1.0-informational?style=flat-square)
+![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.1.0](https://img.shields.io/badge/AppVersion-v1.1.0-informational?style=flat-square)
 
 3d-printing-cost-calculators helm chart for Kubernetes
 
@@ -29,7 +29,7 @@ helm install 3d-printing-cost-calculators oci://ghcr.io/sudo-kraken/helm-charts/
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/3d-printing-cost-calculators:0.1.0 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+cosign verify ghcr.io/sudo-kraken/helm-charts/3d-printing-cost-calculators:0.1.1 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
 
 ## Values
@@ -91,7 +91,7 @@ cosign verify ghcr.io/sudo-kraken/helm-charts/3d-printing-cost-calculators:0.1.0
 | securityContext.runAsUser | int | `10001` |  |
 | securityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
 | service.annotations | object | `{}` | Extra service annotations |
-| service.externalTrafficPolicy | string | `"Cluster"` | External traffic policy, useful with LoadBalancer |
+| service.externalTrafficPolicy | string | `""` | External traffic policy, only used when service.type is LoadBalancer or NodePort |
 | service.ipFamilyPolicy | string | `""` | Optional IP family policy |
 | service.ipFamilies | list | `[]` | Optional IP families |
 | service.labels | object | `{}` | Extra service labels |

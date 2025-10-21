@@ -42,7 +42,7 @@ securityContext:
 service:
   type: ClusterIP
   loadBalancerIP: ""
-  externalTrafficPolicy: Cluster
+  externalTrafficPolicy: ""
   ipFamilyPolicy: ""
   ipFamilies: []
   annotations: {}

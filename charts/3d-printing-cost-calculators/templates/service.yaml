@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "3d-printing-cost-calculators.fullname" . }}
+  name: svc-{{ include "3d-printing-cost-calculators.fullname" . }}
   labels:
     {{- include "3d-printing-cost-calculators.labels" . | nindent 4 }}
   {{- with .Values.service.labels }}
@@ -16,9 +16,9 @@ spec:
   {{- if and (eq .Values.service.type "LoadBalancer") .Values.service.loadBalancerIP }}
   loadBalancerIP: {{ .Values.service.loadBalancerIP }}
   {{- end }}
-  {{- if .Values.service.externalTrafficPolicy }}
-  externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
-  {{- end }}
+{{- if and (or (eq .Values.service.type "LoadBalancer") (eq .Values.service.type "NodePort")) .Values.service.externalTrafficPolicy }}
+externalTrafficPolicy: {{ .Values.service.externalTrafficPolicy }}
+{{- end }}
   {{- if .Values.service.ipFamilyPolicy }}
   ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy }}
   {{- end }}
