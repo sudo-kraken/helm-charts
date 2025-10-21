@@ -1,0 +1,15 @@
+apiVersion: v2
+kubeVersion: ">=1.23.0-0"
+name: fantasy-dice-chamber
+description: fantasy-dice-chamber helm chart for Kubernetes
+type: application
+version: 0.1.0
+# image: ghcr.io/sudo-kraken/fantasy-dice-chamber
+appVersion: "v1.3.2"
+maintainers:
+  - name: Joe Harrison
+    email: sudo-kraken@prxy.8shield.net
+sources:
+  - https://github.com/sudo-kraken/helm-charts/tree/main/charts/fantasy-dice-chamber
+home: https://github.com/sudo-kraken/fantasy-dice-chamber
+icon: https://artifacthub.io/image/08745b60-3c38-4642-af66-7d51aec43b9f@4x

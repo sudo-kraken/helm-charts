@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "authentik-webfinger-proxy.fullname" . }}
+  name: {{ include "fantasy-dice-chamber.fullname" . }}
   labels:
-    {{- include "authentik-webfinger-proxy.labels" . | nindent 4 }}
+    {{- include "fantasy-dice-chamber.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "authentik-webfinger-proxy.selectorLabels" . | nindent 6 }}
+      {{- include "fantasy-dice-chamber.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        {{- include "authentik-webfinger-proxy.selectorLabels" . | nindent 8 }}
+        {{- include "fantasy-dice-chamber.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
@@ -21,7 +21,7 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
-      serviceAccountName: {{ include "authentik-webfinger-proxy.serviceAccountName" . }}
+      serviceAccountName: {{ include "fantasy-dice-chamber.serviceAccountName" . }}
       automountServiceAccountToken: {{ default true .Values.serviceAccount.automount }}
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,7 +31,7 @@ spec:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Values.app.containerName }}
-          image: '{{ include "authentik-webfinger-proxy.image" . }}'
+          image: '{{ include "fantasy-dice-chamber.image" . }}'
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}

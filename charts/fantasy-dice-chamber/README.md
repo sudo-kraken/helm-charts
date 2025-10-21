@@ -1,10 +1,10 @@
-# authentik-webfinger-proxy
+# fantasy-dice-chamber
 
-![Version: 0.1.1](https://img.shields.io/badge/Version-0.1.1-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.1.1](https://img.shields.io/badge/AppVersion-v1.1.1-informational?style=flat-square)
+![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v1.3.2](https://img.shields.io/badge/AppVersion-v1.3.2-informational?style=flat-square)
 
-authentik-webfinger-proxy helm chart for Kubernetes
+fantasy-dice-chamber helm chart for Kubernetes
 
-**Homepage:** <https://github.com/sudo-kraken/authentik-webfinger-proxy>
+**Homepage:** <https://github.com/sudo-kraken/fantasy-dice-chamber>
 
 ## Maintainers
 
@@ -14,7 +14,7 @@ authentik-webfinger-proxy helm chart for Kubernetes
 
 ## Source Code
 
-* <https://github.com/sudo-kraken/helm-charts/tree/main/charts/authentik-webfinger-proxy>
+* <https://github.com/sudo-kraken/helm-charts/tree/main/charts/fantasy-dice-chamber>
 
 ## Requirements
 
@@ -23,13 +23,13 @@ Kubernetes: `>=1.23.0-0`
 ## Install
 
 ```console
-helm install authentik-webfinger-proxy oci://ghcr.io/sudo-kraken/helm-charts/authentik-webfinger-proxy
+helm install fantasy-dice-chamber oci://ghcr.io/sudo-kraken/helm-charts/fantasy-dice-chamber
 ```
 
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/authentik-webfinger-proxy:0.1.1 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
+cosign verify ghcr.io/sudo-kraken/helm-charts/fantasy-dice-chamber:0.1.0 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.actions.githubusercontent.com
 ```
 
 ## Values
@@ -37,15 +37,15 @@ cosign verify ghcr.io/sudo-kraken/helm-charts/authentik-webfinger-proxy:0.1.1 --
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | affinity | object | `{}` | Affinity rules for pods |
-| app.containerName | string | `"authentik-webfinger-proxy"` | Container name |
-| app.containerPort | int | `8000` | Container listen port |
-| app.env | list | `[{"name":"DOMAIN","value":""},{"name":"APPLICATION","value":"tailscale"}]` | Extra environment variables for the container |
-| extraEnv | list | `[]` | Environment variables to add to the authentik-webfinger-proxy pods |
-| extraEnvFrom | list | `[]` | Environment variables from secrets or configmaps to add to the authentik-webfinger-proxy pods |
+| app.containerName | string | `"fantasy-dice-chamber"` | Container name |
+| app.containerPort | int | `5000` | Container listen port |
+| app.env | list | `[]` | Extra environment variables for the container |
+| extraEnv | list | `[]` | Environment variables to add to the fantasy-dice-chamber pods |
+| extraEnvFrom | list | `[]` | Environment variables from secrets or configmaps to add to the fantasy-dice-chamber pods |
 | fullnameOverride | string | `""` | Fully qualified app name override |
 | image.pullPolicy | string | `"IfNotPresent"` | Image pull policy |
 | image.registry | string | `"ghcr.io"` | Container registry |
-| image.repository | string | `"sudo-kraken/authentik-webfinger-proxy"` | Image repository |
+| image.repository | string | `"sudo-kraken/fantasy-dice-chamber"` | Image repository |
 | image.sha | string | `""` | sha256 digest without prefix. Takes precedence over tag when set |
 | image.tag | string | `""` | Overrides the image tag whose default is the chart appVersion |
 | imagePullSecrets | list | `[]` | Image pull secrets |
@@ -90,6 +90,9 @@ cosign verify ghcr.io/sudo-kraken/helm-charts/authentik-webfinger-proxy:0.1.1 --
 | securityContext.runAsNonRoot | bool | `true` |  |
 | securityContext.runAsUser | int | `10001` |  |
 | securityContext.seccompProfile.type | string | `"RuntimeDefault"` |  |
+| secret.create | bool | `false` | Create a Secret from values |
+| secret.name | string | `""` | Existing Secret name containing `GM_PASSOWRD` |
+| secret.data | object | `{}` | Keys for created Secret when `secret.create` is true |
 | service.annotations | object | `{}` | Extra service annotations |
 | service.externalTrafficPolicy | string | `"Cluster"` | External traffic policy, useful with LoadBalancer |
 | service.ipFamilyPolicy | string | `""` | Optional IP family policy |
@@ -97,7 +100,7 @@ cosign verify ghcr.io/sudo-kraken/helm-charts/authentik-webfinger-proxy:0.1.1 --
 | service.labels | object | `{}` | Extra service labels |
 | service.loadBalancerIP | string | `""` | Optional static LoadBalancer IP |
 | service.port | int | `80` | Service port |
-| service.targetPort | int | `8000` | Target container port |
+| service.targetPort | int | `5000` | Target container port |
 | service.type | string | `"ClusterIP"` | Service type |
 | serviceAccount.annotations | object | `{}` | Annotations to add to the service account |
 | serviceAccount.automount | bool | `false` | Automatically mount a ServiceAccount token |
