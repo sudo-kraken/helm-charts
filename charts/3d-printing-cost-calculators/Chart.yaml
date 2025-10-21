@@ -5,7 +5,7 @@ description: 3d-printing-cost-calculators helm chart for Kubernetes
 type: application
 version: 0.1.1
 # image: ghcr.io/sudo-kraken/3d-printing-cost-calculators
-appVersion: "v1.1.1"
+appVersion: "v1.1.0"
 maintainers:
   - name: Joe Harrison
     email: sudo-kraken@prxy.8shield.net
