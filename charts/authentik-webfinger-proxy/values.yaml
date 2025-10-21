@@ -1,0 +1,119 @@
+replicaCount: 1
+
+image:
+  registry: ghcr.io
+  repository: sudo-kraken/authentik-webfinger-proxy
+  pullPolicy: IfNotPresent
+  tag: ""              # use chart appVersion by default
+  sha: ""              # or pin a digest without sha256: prefix
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+extraEnv: []
+extraEnvFrom: []
+
+serviceAccount:
+  create: false
+  annotations: {}
+  automount: false
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 10001
+  fsGroupChangePolicy: OnRootMismatch
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  privileged: false
+  runAsUser: 10001
+  runAsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+service:
+  type: ClusterIP
+  loadBalancerIP: ""
+  externalTrafficPolicy: Cluster
+  ipFamilyPolicy: ""
+  ipFamilies: []
+  annotations: {}
+  labels: {}
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  tls:
+    enabled: false
+    secretName: ""
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+app:
+  containerName: authentik-webfinger-proxy
+  containerPort: 8000
+  env:
+  - name: DOMAIN
+    value: ""
+  - name: APPLICATION
+    value: "tailscale"
+
+# Probes use /health since the app exposes only that
+livenessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+startupProbe:
+  enabled: false
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 0
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 30
+  successThreshold: 1
+
+# Leave disabled
+serviceMonitor:
+  enabled: false
