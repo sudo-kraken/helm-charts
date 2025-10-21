@@ -3,9 +3,9 @@ kubeVersion: ">=1.23.0-0"
 name: finances-tracker
 description: finances-tracker helm chart for Kubernetes
 type: application
-version: 0.1.2
+version: 0.1.3
 # image: ghcr.io/sudo-kraken/finances-tracker
-appVersion: "v1.1.0"
+appVersion: "v1.1.1"
 maintainers:
   - name: Joe Harrison
     email: sudo-kraken@prxy.8shield.net
