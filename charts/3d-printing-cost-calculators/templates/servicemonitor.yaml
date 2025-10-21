@@ -1,0 +1,49 @@
+{{- $sm := .Values.serviceMonitor | default dict -}}
+{{- if (default false $sm.enabled) }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "3d-printing-cost-calculators.fullname" . }}
+  {{- if $sm.namespace }}
+  namespace: {{ $sm.namespace }}
+  {{- end }}
+  labels:
+    {{- include "3d-printing-cost-calculators.labels" . | nindent 4 }}
+    {{- with $sm.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if $sm.namespaceSelector }}
+  namespaceSelector:
+    {{- toYaml $sm.namespaceSelector | nindent 4 }}
+  {{- else }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Release.Namespace }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "3d-printing-cost-calculators.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: {{ default "/health" $sm.path }}
+      interval: {{ default "30s" $sm.interval }}
+      scrapeTimeout: {{ default "10s" $sm.scrapeTimeout }}
+      scheme: {{ default "http" $sm.scheme }}
+      {{- with $sm.tlsConfig }}
+      tlsConfig:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $sm.metricRelabelings }}
+      metricRelabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $sm.relabelings }}
+      relabelings:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  {{- with $sm.targetLabels }}
+  targetLabels:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}
