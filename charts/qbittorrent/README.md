@@ -33,7 +33,7 @@ helm install qbittorrent oci://ghcr.io/sudo-kraken/helm-charts/qbittorrent
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/qbittorrent:5.1.3 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
+cosign verify ghcr.io/sudo-kraken/helm-charts/qbittorrent:5.1.3 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
 tions.githubusercontent.com
 ```
 
@@ -65,7 +65,7 @@ tions.githubusercontent.com
 | qbittorrent.extraEnv | list | `[]` | Environment variables to add to the qbittorrent pods |
 | qbittorrent.extraEnvFrom | list | `[]` | Environment variables from secrets or configmaps to add to the qbittorrent pods |
 | qbittorrent.fullnameOverride | string | `""` |  |
-| qbittorrent.gluetun | object | `{"enabled":false,"extraEnv":[],"extraEnvFrom":[],"image":{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"qmcgaw/gluetun","sha":"","tag":"v3.40.0"},"resources":{"limits":{"squat.ai/tun":1}},"securityContext":{"capabilities":{"add":["NET_ADMIN"]}},"volumeMounts":[]}` | Gluetun sidecar |
+| qbittorrent.gluetun | object | `{"enabled":false,"extraEnv":[],"extraEnvFrom":[],"image":{"pullPolicy":"IfNotPresent","registry":"docker.io","repository":"qmcgaw/gluetun","sha":"","tag":"v3.40.3"},"resources":{"limits":{"squat.ai/tun":1}},"securityContext":{"capabilities":{"add":["NET_ADMIN"]}},"volumeMounts":[]}` | Gluetun sidecar |
 | qbittorrent.image.pullPolicy | string | `"IfNotPresent"` |  |
 | qbittorrent.image.registry | string | `"ghcr.io"` |  |
 | qbittorrent.image.repository | string | `"home-operations/qbittorrent"` |  |
