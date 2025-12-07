@@ -1,6 +1,6 @@
 # prowlarr
 
-![Version: 3.1.3](https://img.shields.io/badge/Version-3.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.1.3](https://img.shields.io/badge/AppVersion-2.1.3-informational?style=flat-square)
+![Version: 3.2.0](https://img.shields.io/badge/Version-3.2.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 2.3.0](https://img.shields.io/badge/AppVersion-2.3.0-informational?style=flat-square)
 
 prowlarr helm chart for Kubernetes
 
@@ -29,7 +29,7 @@ helm install prowlarr oci://ghcr.io/sudo-kraken/helm-charts/prowlarr
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/prowlarr:3.1.3 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
+cosign verify ghcr.io/sudo-kraken/helm-charts/prowlarr:3.2.0 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
 tions.githubusercontent.com
 ```
 
