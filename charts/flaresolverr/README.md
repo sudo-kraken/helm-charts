@@ -1,6 +1,6 @@
 # flaresolverr
 
-![Version: 2.1.2](https://img.shields.io/badge/Version-2.1.2-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v3.4.2](https://img.shields.io/badge/AppVersion-v3.4.2-informational?style=flat-square)
+![Version: 2.1.3](https://img.shields.io/badge/Version-2.1.3-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: v3.4.6](https://img.shields.io/badge/AppVersion-v3.4.6-informational?style=flat-square)
 
 flaresolverr helm chart for Kubernetes
 
@@ -29,7 +29,7 @@ helm install flaresolverr oci://ghcr.io/sudo-kraken/helm-charts/flaresolverr
 Verify the signature with [cosign](https://docs.sigstore.dev/cosign/system_config/installation/) :
 
 ```console
-cosign verify ghcr.io/sudo-kraken/helm-charts/flaresolverr:2.1.2 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/release.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
+cosign verify ghcr.io/sudo-kraken/helm-charts/flaresolverr:2.1.3 --certificate-identity=https://github.com/sudo-kraken/helm-charts/.github/workflows/releases.yml@refs/heads/main --certificate-oidc-issuer=https://token.ac
 tions.githubusercontent.com
 ```
 
